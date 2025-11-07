@@ -92,11 +92,11 @@ Implement proper PCI compliance measures when handling sensitive payment data
 Use Stripe's Elements for consistent and secure payment form UI
 Leverage Stripe's billing and subscription features for recurring payments
 
-OpenAI Best Practices:
+Groq Best Practices:
 
-Use OpenAI's API for integrating AI-powered features
+Use Groq's API for integrating AI-powered features
 Implement proper error handling for API requests
 Utilize rate limiting and caching to optimize API usage
 Implement proper data validation and sanitization for user inputs
-Use OpenAI's streaming feature for real-time AI responses
-Leverage OpenAI's fine-tuning capabilities for custom AI models
+Follow Groq's guidance for managing on-demand model usage
+Monitor model updates from Groq for access to the latest capabilities

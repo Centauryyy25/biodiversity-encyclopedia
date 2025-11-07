@@ -16,7 +16,7 @@ export default function SpeciesNotFound() {
               Species Not Found
             </CardTitle>
             <p className="text-[#8EB69B] mt-2">
-              We couldn't find the species you're looking for.
+              We couldn&apos;t find the species you&apos;re looking for.
             </p>
           </CardHeader>
           <CardContent className="text-center space-y-6">

@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { SpeciesCard } from '@/components/species';
-import { FeaturedSpecies } from '@/types/species';
-import { getFeaturedSpecies } from '@/lib/supabase/species';
+import type { Species } from '@/types/species';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+interface FeaturedSpeciesResponse {
+  data: Species[];
+  error?: string;
+}
+
 export default function FeaturedSpeciesClient() {
-  const [featuredSpecies, setFeaturedSpecies] = useState<FeaturedSpecies[]>([]);
+  const [featuredSpecies, setFeaturedSpecies] = useState<Species[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,13 +20,23 @@ export default function FeaturedSpeciesClient() {
     const fetchFeaturedSpecies = async () => {
       try {
         setLoading(true);
-        const { data, error } = await getFeaturedSpecies(8);
+        const response = await fetch('/api/species?featured=true&limit=8', {
+          cache: 'no-store',
+        });
 
-        if (error) {
-          setError(error);
-        } else {
-          setFeaturedSpecies(data || []);
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message || 'Failed to load featured species');
         }
+
+        const payload: FeaturedSpeciesResponse = await response.json();
+
+        if (payload.error) {
+          setError(payload.error);
+          return;
+        }
+
+        setFeaturedSpecies(payload.data || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       } finally {
@@ -70,7 +84,7 @@ export default function FeaturedSpeciesClient() {
           No featured species available at the moment.
         </div>
         <p className="text-[#DAF1DE]/60">
-          We're working on adding more amazing species to our collection.
+          We&apos;re working on adding more amazing species to our collection.
         </p>
       </div>
     );
@@ -79,32 +93,7 @@ export default function FeaturedSpeciesClient() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {featuredSpecies.map((species) => (
-        <SpeciesCard
-          key={species.id}
-          species={{
-            id: species.id,
-            scientific_name: species.scientific_name,
-            common_name: species.common_name,
-            slug: species.slug,
-            kingdom: null,
-            phylum: null,
-            class: null,
-            order: null,
-            family: null,
-            genus: null,
-            species: null,
-            description: species.description,
-            morphology: null,
-            habitat_description: null,
-            conservation_status: null,
-            iucn_status: species.iucn_status,
-            featured: species.featured,
-            image_urls: species.image_urls || [],
-            habitat_map_coords: null,
-            created_at: '',
-            updated_at: ''
-          }}
-        />
+        <SpeciesCard key={species.id} species={species} />
       ))}
     </div>
   );

@@ -2,10 +2,6 @@ import { createClient } from '@/utils/supabase/client';
 import {
   Species,
   SpeciesWithDetails,
-  SearchResult,
-  FeaturedSpecies,
-  SearchSpeciesParams,
-  GetFeaturedSpeciesParams,
   SpeciesApiResponse,
   SpeciesListApiResponse,
   SearchApiResponse,

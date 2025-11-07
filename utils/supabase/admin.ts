@@ -4,13 +4,35 @@ import { stripe } from '@/utils/stripe/config';
 import Stripe from 'stripe';
 import type { Database, Tables, TablesInsert } from '@/types/database.types';
 
-export function createAdminClient() {
-    const supabase = createClient<Database>(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    return supabase
+if (!supabaseUrl) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable.');
+}
+
+if (!anonKey) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable.');
+}
+
+const supabaseAdminKey = serviceRoleKey ?? anonKey;
+
+if (!serviceRoleKey) {
+    console.warn(
+        'SUPABASE_SERVICE_ROLE_KEY is not set. Falling back to anon key with read-only permissions. ' +
+        'Write operations that require elevated privileges will fail until the service role key is provided.'
+    );
+}
+
+export const hasSupabaseServiceRole = Boolean(serviceRoleKey);
+
+export function createAdminClient() {
+    if (!serviceRoleKey) {
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY is required to create an admin Supabase client.');
+    }
+
+    return createClient<Database>(supabaseUrl, serviceRoleKey);
 }
 
 
@@ -20,11 +42,10 @@ type Price = Tables<'prices'>;
 // Change to control trial period length
 const TRIAL_PERIOD_DAYS = 0;
 
-// Note: supabaseAdmin uses the SERVICE_ROLE_KEY which you must only use in a secure server-side context
-// as it has admin privileges and overwrites RLS policies!
+// Note: supabaseAdmin uses the SERVICE_ROLE_KEY when available, otherwise falls back to anon key (read-only)
 export const supabaseAdmin = createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    supabaseUrl,
+    supabaseAdminKey
 );
 
 const upsertProductRecord = async (product: Stripe.Product) => {

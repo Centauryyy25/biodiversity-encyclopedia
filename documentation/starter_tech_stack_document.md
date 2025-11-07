@@ -165,7 +165,7 @@ This starter kit uses the following tech stack:
     - **cmdk**: For command palette functionality
 
 11. **AI Integration:**
-    - OpenAI implementation: `utils/ai/openai.ts`
+    - Groq implementation (`moonshotai/kimi-k2-instruct-0905` model) in `utils/ai/groq.ts`
 
 12. **Helper Utilities:**
     - General helpers: `utils/helpers.ts`

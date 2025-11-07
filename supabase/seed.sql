@@ -122,17 +122,19 @@ INSERT INTO "public"."species" (
 );
 
 -- Insert taxonomy hierarchy data
-INSERT INTO "public"."taxonomy_hierarchy" ("species_id", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+INSERT INTO "public"."taxonomy_hierarchy"
+("species_id", "kingdom", "phylum", "class", "order", "family", "genus", "species")
 SELECT
     id,
     kingdom,
     phylum,
-    class,
-    order,
+    "class",
+    "order",
     family,
     genus,
     species
 FROM "public"."species";
+
 
 -- Insert conservation data
 INSERT INTO "public"."conservation_data" ("species_id", "iucn_status", "iucn_category", "population_trend", "population_size", "threat_level", "threats", "conservation_actions", "habitat_protection", "last_assessed")
