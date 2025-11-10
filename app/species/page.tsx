@@ -57,6 +57,10 @@ interface SpeciesFilters {
   status?: string;
 }
 
+type SpeciesPageProps = {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
 async function fetchInitialSpecies(filters: SpeciesFilters): Promise<SpeciesListResponse> {
   const baseUrl = await resolveBaseUrl();
 
@@ -94,15 +98,16 @@ async function fetchInitialSpecies(filters: SpeciesFilters): Promise<SpeciesList
   }
 }
 
-export default async function SpeciesPage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
-  const search = typeof searchParams?.search === 'string' ? searchParams.search : undefined;
-  const kingdom = typeof searchParams?.kingdom === 'string' ? searchParams.kingdom : undefined;
+export default async function SpeciesPage({ searchParams }: SpeciesPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const search =
+    typeof resolvedSearchParams?.search === 'string' ? resolvedSearchParams.search : undefined;
+  const kingdom =
+    typeof resolvedSearchParams?.kingdom === 'string' ? resolvedSearchParams.kingdom : undefined;
   const status =
-    typeof searchParams?.iucn_status === 'string' ? searchParams.iucn_status : undefined;
+    typeof resolvedSearchParams?.iucn_status === 'string'
+      ? resolvedSearchParams.iucn_status
+      : undefined;
 
   const initialPayload = await fetchInitialSpecies({
     search,
