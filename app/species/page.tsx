@@ -35,21 +35,10 @@ const resolveBaseUrl = async () => {
 
   // Fallback to request headers when available. Be defensive about shape.
   try {
-    const headerStore: any = await headers();
-    const safeGet = (name: string): string | undefined => {
-      if (headerStore && typeof headerStore.get === 'function') {
-        return headerStore.get(name) ?? headerStore.get(name.toLowerCase());
-      }
-      if (headerStore && typeof headerStore === 'object') {
-        // Node IncomingHttpHeaders are lowercase keys
-        return headerStore[name.toLowerCase()] ?? headerStore[name];
-      }
-      return undefined;
-    };
-
-    const forwardedProto = safeGet('x-forwarded-proto') ?? 'http';
-    const forwardedHost = safeGet('x-forwarded-host');
-    const host = forwardedHost ?? safeGet('host');
+    const headerStore = await headers();
+    const forwardedProto = headerStore.get('x-forwarded-proto') ?? 'http';
+    const forwardedHost = headerStore.get('x-forwarded-host');
+    const host = forwardedHost ?? headerStore.get('host');
 
     if (host) {
       return `${forwardedProto}://${host}`;
@@ -62,7 +51,6 @@ const resolveBaseUrl = async () => {
   return 'http://localhost:3000';
 };
 
-<<<<<<< HEAD
 interface SpeciesFilters {
   search?: string;
   kingdom?: string;
@@ -70,11 +58,7 @@ interface SpeciesFilters {
 }
 
 async function fetchInitialSpecies(filters: SpeciesFilters): Promise<SpeciesListResponse> {
-  const baseUrl = resolveBaseUrl();
-=======
-async function fetchInitialSpecies(): Promise<SpeciesListResponse> {
   const baseUrl = await resolveBaseUrl();
->>>>>>> dd66b8e7f0ac13e48187d7fedf0f9349ee942198
 
   try {
     const params = new URLSearchParams({ limit: String(PAGE_SIZE) });

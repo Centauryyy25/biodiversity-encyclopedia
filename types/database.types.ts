@@ -132,6 +132,264 @@ export type Database = {
                 }
                 Relationships: []
             }
+            species: {
+                Row: {
+                    id: string
+                    scientific_name: string
+                    common_name: string | null
+                    slug: string
+                    kingdom: string | null
+                    phylum: string | null
+                    class: string | null
+                    order: string | null
+                    family: string | null
+                    genus: string | null
+                    species: string | null
+                    description: string | null
+                    morphology: string | null
+                    habitat_description: string | null
+                    conservation_status: string | null
+                    iucn_status: string | null
+                    featured: boolean | null
+                    image_urls: string[] | null
+                    habitat_map_coords: Json | null
+                    created_at: string
+                    updated_at: string
+                    info_detail: string | null
+                }
+                Insert: {
+                    id?: string
+                    scientific_name: string
+                    common_name?: string | null
+                    slug: string
+                    kingdom?: string | null
+                    phylum?: string | null
+                    class?: string | null
+                    order?: string | null
+                    family?: string | null
+                    genus?: string | null
+                    species?: string | null
+                    description?: string | null
+                    morphology?: string | null
+                    habitat_description?: string | null
+                    conservation_status?: string | null
+                    iucn_status?: string | null
+                    featured?: boolean | null
+                    image_urls?: string[] | null
+                    habitat_map_coords?: Json | null
+                    created_at?: string
+                    updated_at?: string
+                    info_detail?: string | null
+                }
+                Update: {
+                    id?: string
+                    scientific_name?: string
+                    common_name?: string | null
+                    slug?: string
+                    kingdom?: string | null
+                    phylum?: string | null
+                    class?: string | null
+                    order?: string | null
+                    family?: string | null
+                    genus?: string | null
+                    species?: string | null
+                    description?: string | null
+                    morphology?: string | null
+                    habitat_description?: string | null
+                    conservation_status?: string | null
+                    iucn_status?: string | null
+                    featured?: boolean | null
+                    image_urls?: string[] | null
+                    habitat_map_coords?: Json | null
+                    created_at?: string
+                    updated_at?: string
+                    info_detail?: string | null
+                }
+                Relationships: []
+            }
+            conservation_data: {
+                Row: {
+                    id: string
+                    species_id: string
+                    iucn_status: string | null
+                    iucn_category: string | null
+                    population_trend: string | null
+                    population_size: string | null
+                    threat_level: string | null
+                    threats: string[] | null
+                    conservation_actions: string[] | null
+                    habitat_protection: boolean | null
+                    last_assessed: string | null
+                    assessor: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    species_id: string
+                    iucn_status?: string | null
+                    iucn_category?: string | null
+                    population_trend?: string | null
+                    population_size?: string | null
+                    threat_level?: string | null
+                    threats?: string[] | null
+                    conservation_actions?: string[] | null
+                    habitat_protection?: boolean | null
+                    last_assessed?: string | null
+                    assessor?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    species_id?: string
+                    iucn_status?: string | null
+                    iucn_category?: string | null
+                    population_trend?: string | null
+                    population_size?: string | null
+                    threat_level?: string | null
+                    threats?: string[] | null
+                    conservation_actions?: string[] | null
+                    habitat_protection?: boolean | null
+                    last_assessed?: string | null
+                    assessor?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "conservation_data_species_id_fkey"
+                        columns: ["species_id"]
+                        isOneToOne: false
+                        referencedRelation: "species"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            taxonomy_hierarchy: {
+                Row: {
+                    id: string
+                    species_id: string
+                    kingdom: string | null
+                    phylum: string | null
+                    class: string | null
+                    order: string | null
+                    family: string | null
+                    genus: string | null
+                    species: string | null
+                    subspecies: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    species_id: string
+                    kingdom?: string | null
+                    phylum?: string | null
+                    class?: string | null
+                    order?: string | null
+                    family?: string | null
+                    genus?: string | null
+                    species?: string | null
+                    subspecies?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    species_id?: string
+                    kingdom?: string | null
+                    phylum?: string | null
+                    class?: string | null
+                    order?: string | null
+                    family?: string | null
+                    genus?: string | null
+                    species?: string | null
+                    subspecies?: string | null
+                    created_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "taxonomy_hierarchy_species_id_fkey"
+                        columns: ["species_id"]
+                        isOneToOne: false
+                        referencedRelation: "species"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            species_images: {
+                Row: {
+                    id: string
+                    species_id: string
+                    image_url: string
+                    alt_text: string | null
+                    caption: string | null
+                    photographer: string | null
+                    license: string | null
+                    is_primary: boolean | null
+                    sort_order: number | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    species_id: string
+                    image_url: string
+                    alt_text?: string | null
+                    caption?: string | null
+                    photographer?: string | null
+                    license?: string | null
+                    is_primary?: boolean | null
+                    sort_order?: number | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    species_id?: string
+                    image_url?: string
+                    alt_text?: string | null
+                    caption?: string | null
+                    photographer?: string | null
+                    license?: string | null
+                    is_primary?: boolean | null
+                    sort_order?: number | null
+                    created_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "species_images_species_id_fkey"
+                        columns: ["species_id"]
+                        isOneToOne: false
+                        referencedRelation: "species"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            newsletter_signups: {
+                Row: {
+                    id: string
+                    email: string
+                    topic: string | null
+                    source: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    email: string
+                    topic?: string | null
+                    source?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    email?: string
+                    topic?: string | null
+                    source?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Relationships: []
+            }
             subscriptions: {
                 Row: {
                     cancel_at: string | null
@@ -202,6 +460,36 @@ export type Database = {
             requesting_user_id: {
                 Args: Record<PropertyKey, never>
                 Returns: string
+            }
+            search_species: {
+                Args: {
+                    search_query: string
+                }
+                Returns: {
+                    id: string
+                    scientific_name: string | null
+                    common_name: string | null
+                    slug: string | null
+                    description: string | null
+                    iucn_status: string | null
+                    featured: boolean | null
+                    rank: number | null
+                }[]
+            }
+            get_featured_species: {
+                Args: {
+                    limit_count?: number | null
+                }
+                Returns: {
+                    id: string
+                    scientific_name: string | null
+                    common_name: string | null
+                    slug: string | null
+                    description: string | null
+                    iucn_status: string | null
+                    image_urls: string[] | null
+                    featured: boolean | null
+                }[]
             }
         }
         Enums: {

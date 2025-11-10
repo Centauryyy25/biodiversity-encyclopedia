@@ -1,21 +1,75 @@
 import { createClient } from '@/utils/supabase/client';
-import {
+import type {
   Species,
   SpeciesWithDetails,
   SpeciesApiResponse,
   SpeciesListApiResponse,
   SearchApiResponse,
-  FeaturedSpeciesApiResponse
+  FeaturedSpeciesApiResponse,
+  SearchResult,
+  FeaturedSpecies,
+  ConservationData,
+  SpeciesImage,
+  TaxonomyHierarchy,
 } from '@/types/species';
+import type {
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+  Database,
+} from '@/types/database.types';
 
 const supabase = createClient();
+type SpeciesRow = Tables<'species'>;
+type ConservationRow = Tables<'conservation_data'> | null;
+type SpeciesImageRow = Tables<'species_images'>;
+type FeaturedFunctionRow =
+  Database['public']['Functions']['get_featured_species']['Returns'][number];
+type SearchFunctionRow =
+  Database['public']['Functions']['search_species']['Returns'][number];
+
+const mapSpeciesRow = (row: SpeciesRow): Species => ({
+  ...row,
+  featured: Boolean(row.featured),
+  image_urls: Array.isArray(row.image_urls) ? row.image_urls : [],
+  habitat_map_coords:
+    row.habitat_map_coords && typeof row.habitat_map_coords === 'object'
+      ? (row.habitat_map_coords as Species['habitat_map_coords'])
+      : null,
+  info_detail: row.info_detail ?? null,
+});
+
+const mapConservationRow = (
+  row: ConservationRow
+): SpeciesWithDetails['conservation'] => {
+  if (!row) return null;
+  return {
+    ...(row as ConservationData),
+    threats: row.threats ?? [],
+    conservation_actions: row.conservation_actions ?? [],
+    habitat_protection: row.habitat_protection ?? null,
+  };
+};
+
+const mapImageRows = (
+  rows: SpeciesImageRow[] | null
+): SpeciesWithDetails['images'] => {
+  if (!rows) return [];
+  return rows.map(
+    (image): SpeciesImage => ({
+      ...image,
+      is_primary: Boolean(image.is_primary),
+      sort_order: image.sort_order ?? 0,
+    })
+  );
+};
 
 /**
  * Fetch a single species by slug
  */
 export async function getSpeciesBySlug(slug: string): Promise<SpeciesApiResponse> {
   try {
-    const { data: species, error: speciesError } = await (supabase as any)
+    const { data: speciesRow, error: speciesError } = await supabase
       .from('species')
       .select('*')
       .eq('slug', slug)
@@ -26,35 +80,34 @@ export async function getSpeciesBySlug(slug: string): Promise<SpeciesApiResponse
       return { data: null, error: speciesError.message };
     }
 
-    if (!species) {
+    if (!speciesRow) {
       return { data: null, error: 'Species not found' };
     }
 
     // Fetch related data
-    const { data: taxonomy } = await (supabase as any)
+    const { data: taxonomy } = await supabase
       .from('taxonomy_hierarchy')
       .select('*')
-      .eq('species_id', species.id)
+      .eq('species_id', speciesRow.id)
       .single();
 
-    const { data: conservation } = await (supabase as any)
+    const { data: conservation } = await supabase
       .from('conservation_data')
       .select('*')
-      .eq('species_id', species.id)
+      .eq('species_id', speciesRow.id)
       .single();
 
-    const { data: images } = await (supabase as any)
+    const { data: images } = await supabase
       .from('species_images')
       .select('*')
-      .eq('species_id', species.id)
+      .eq('species_id', speciesRow.id)
       .order('sort_order', { ascending: true });
 
     const speciesWithDetails: SpeciesWithDetails = {
-      ...species,
-      image_urls: species.image_urls || [],
-      taxonomy,
-      conservation,
-      images: images || []
+      ...mapSpeciesRow(speciesRow),
+      taxonomy: (taxonomy as TaxonomyHierarchy | null),
+      conservation: mapConservationRow(conservation as ConservationRow),
+      images: mapImageRows(images as SpeciesImageRow[] | null),
     };
 
     return { data: speciesWithDetails };
@@ -76,7 +129,7 @@ export async function getAllSpecies(
   featured: boolean = false
 ): Promise<SpeciesListApiResponse> {
   try {
-    let query = (supabase as any)
+    let query = supabase
       .from('species')
       .select('*')
       .order('scientific_name', { ascending: true })
@@ -93,7 +146,7 @@ export async function getAllSpecies(
       return { data: null, error: error.message };
     }
 
-    return { data: (data as any[] | null) || [] };
+    return { data: (data ?? []).map((row) => mapSpeciesRow(row as SpeciesRow)) };
   } catch (error) {
     console.error('Error in getAllSpecies:', error);
     return {
@@ -110,8 +163,8 @@ export async function searchSpecies(
   searchQuery: string
 ): Promise<SearchApiResponse> {
   try {
-    const { data, error } = await (supabase as any).rpc('search_species', {
-      search_query: searchQuery
+    const { data, error } = await supabase.rpc('search_species', {
+      search_query: searchQuery,
     });
 
     if (error) {
@@ -119,7 +172,18 @@ export async function searchSpecies(
       return { data: null, error: error.message };
     }
 
-    return { data: (data as unknown as any[] | null) || [] };
+    const mapped: SearchResult[] = (data ?? []).map((row: SearchFunctionRow) => ({
+      id: row.id,
+      scientific_name: row.scientific_name ?? '',
+      common_name: row.common_name ?? null,
+      slug: row.slug ?? '',
+      description: row.description ?? null,
+      iucn_status: row.iucn_status ?? null,
+      featured: Boolean(row.featured),
+      rank: row.rank ?? 0,
+    }));
+
+    return { data: mapped };
   } catch (error) {
     console.error('Error in searchSpecies:', error);
     return {
@@ -136,8 +200,8 @@ export async function getFeaturedSpecies(
   limit: number = 8
 ): Promise<FeaturedSpeciesApiResponse> {
   try {
-    const { data, error } = await (supabase as any).rpc('get_featured_species', {
-      limit_count: limit
+    const { data, error } = await supabase.rpc('get_featured_species', {
+      limit_count: limit,
     });
 
     if (error) {
@@ -145,7 +209,20 @@ export async function getFeaturedSpecies(
       return { data: null, error: error.message };
     }
 
-    return { data: (data as unknown as any[] | null) || [] };
+    const featuredRows = (data as FeaturedFunctionRow[] | null) ?? [];
+    const payload: FeaturedSpecies[] = featuredRows.map((row) => ({
+      id: row.id,
+      scientific_name: row.scientific_name ?? '',
+      common_name: row.common_name ?? null,
+      slug: row.slug ?? '',
+      description: row.description ?? null,
+      iucn_status: row.iucn_status ?? null,
+      image_urls: Array.isArray(row.image_urls) ? row.image_urls : [],
+      featured: Boolean(row.featured),
+    }));
+    return {
+      data: payload,
+    };
   } catch (error) {
     console.error('Error in getFeaturedSpecies:', error);
     return {
@@ -163,7 +240,7 @@ export async function getSpeciesByKingdom(
   limit: number = 50
 ): Promise<SpeciesListApiResponse> {
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('species')
       .select('*')
       .eq('kingdom', kingdom)
@@ -175,7 +252,7 @@ export async function getSpeciesByKingdom(
       return { data: null, error: error.message };
     }
 
-    return { data: data || [] };
+    return { data: (data ?? []).map((row) => mapSpeciesRow(row as SpeciesRow)) };
   } catch (error) {
     console.error('Error in getSpeciesByKingdom:', error);
     return {
@@ -193,7 +270,7 @@ export async function getSpeciesByConservationStatus(
   limit: number = 50
 ): Promise<SpeciesListApiResponse> {
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('species')
       .select('*')
       .eq('iucn_status', status)
@@ -205,7 +282,7 @@ export async function getSpeciesByConservationStatus(
       return { data: null, error: error.message };
     }
 
-    return { data: data || [] };
+    return { data: (data ?? []).map((row) => mapSpeciesRow(row as SpeciesRow)) };
   } catch (error) {
     console.error('Error in getSpeciesByConservationStatus:', error);
     return {
@@ -222,9 +299,11 @@ export async function createSpecies(
   species: Omit<Species, 'id' | 'created_at' | 'updated_at'>
 ): Promise<SpeciesApiResponse> {
   try {
-    const { data, error } = await (supabase as any)
+    const insertPayload: TablesInsert<'species'> = species as TablesInsert<'species'>;
+
+    const { data, error } = await supabase
       .from('species')
-      .insert(species)
+      .insert([insertPayload])
       .select()
       .single();
 
@@ -233,7 +312,7 @@ export async function createSpecies(
       return { data: null, error: error.message };
     }
 
-    return { data };
+    return { data: mapSpeciesRow(data as SpeciesRow) };
   } catch (error) {
     console.error('Error in createSpecies:', error);
     return {
@@ -251,9 +330,14 @@ export async function updateSpecies(
   updates: Partial<Species>
 ): Promise<SpeciesApiResponse> {
   try {
-    const { data, error } = await (supabase as any)
+    const updatePayload: TablesUpdate<'species'> = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
       .from('species')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', id)
       .select()
       .single();
@@ -263,7 +347,7 @@ export async function updateSpecies(
       return { data: null, error: error.message };
     }
 
-    return { data };
+    return { data: mapSpeciesRow(data as SpeciesRow) };
   } catch (error) {
     console.error('Error in updateSpecies:', error);
     return {
@@ -278,7 +362,7 @@ export async function updateSpecies(
  */
 export async function deleteSpecies(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('species')
       .delete()
       .eq('id', id);

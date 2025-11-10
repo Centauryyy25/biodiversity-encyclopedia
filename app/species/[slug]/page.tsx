@@ -378,10 +378,11 @@ export default async function SpeciesPage({ params }: SpeciesPageProps) {
                 <CardTitle className="text-[#DAF1DE]">Quick Facts</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-<<<<<<< HEAD
                 {(() => {
                   const habitatProtection = species.conservation?.habitat_protection;
-                  const showHabitatProtection = habitatProtection !== undefined && habitatProtection !== null;
+                  const showHabitatProtection =
+                    habitatProtection !== undefined && habitatProtection !== null;
+
                   return (
                     <>
                       <div className="flex justify-between text-sm">
@@ -414,35 +415,6 @@ export default async function SpeciesPage({ params }: SpeciesPageProps) {
                     </>
                   );
                 })()}
-=======
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#8EB69B]">Scientific Name:</span>
-                  <span className="text-[#DAF1DE] italic">{species.scientific_name}</span>
-                </div>
-                <Separator className="bg-[#8EB69B]/20" />
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#8EB69B]">Conservation Status:</span>
-                  <span className="text-[#DAF1DE]">{getStatusText(species.iucn_status)}</span>
-                </div>
-                {species.conservation && species.conservation.habitat_protection !== null && (
-                  <>
-                    <Separator className="bg-[#8EB69B]/20" />
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[#8EB69B]">Habitat Protection:</span>
-                      <span className="text-[#DAF1DE]">
-                        {species.conservation.habitat_protection ? 'Protected' : 'Not Protected'}
-                      </span>
-                    </div>
-                  </>
-                )}
-                <Separator className="bg-[#8EB69B]/20" />
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#8EB69B]">Last Updated:</span>
-                  <span className="text-[#DAF1DE]">
-                    {new Date(species.updated_at).toLocaleDateString()}
-                  </span>
-                </div>
->>>>>>> dd66b8e7f0ac13e48187d7fedf0f9349ee942198
               </CardContent>
             </Card>
           </div>

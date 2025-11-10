@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { sanitizeSearchTerm } from '@/lib/api/species-route-helpers';
+import type { Database } from '@/types/database.types';
+
+type SearchFunctionRow =
+  Database['public']['Functions']['search_species']['Returns'][number];
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -13,7 +17,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { data, error } = await (supabaseAdmin as any).rpc('search_species', {
+    const { data, error } = await supabaseAdmin.rpc('search_species', {
       search_query: term,
     });
 
@@ -22,7 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const results = Array.isArray(data) ? data.slice(0, limit) : [];
+    const results: SearchFunctionRow[] = (data ?? []).slice(0, limit);
     return NextResponse.json({ data: results });
   } catch (e) {
     console.error('Search endpoint error:', e);

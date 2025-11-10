@@ -7,6 +7,13 @@ import {
   slugify,
   speciesPayloadSchema,
 } from '@/lib/api/species-route-helpers';
+import type { Database, Tables, TablesInsert } from '@/types/database.types';
+import type { Species } from '@/types/species';
+
+type SpeciesRow = Tables<'species'>;
+type SpeciesInsert = TablesInsert<'species'>;
+type SearchFunctionRow =
+  Database['public']['Functions']['search_species']['Returns'][number];
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -23,19 +30,20 @@ export async function GET(request: NextRequest) {
       const term = sanitizeSearchTerm(search);
       if (term) {
         // 1) Call RPC to get ranked hits (id, rank, etc.)
-        const { data: hits, error: rpcError } = await (supabaseAdmin as any).rpc(
+        const { data: hits, error: rpcError } = await supabaseAdmin.rpc(
           'search_species',
           { search_query: term }
         );
 
-        if (!rpcError && Array.isArray(hits)) {
+        if (!rpcError && hits) {
           // Keep original order (rank DESC in function). Build ordered id list.
-          const orderedIds: string[] = (hits as any[]).map((h) => h.id).filter(Boolean);
+          const resultRows: SearchFunctionRow[] = hits;
+          const orderedIds = resultRows.map((hit) => hit.id);
 
           // 2) If there are extra filters, compute the allowed ids via a cheap filtered select.
           let filteredIds = orderedIds;
-          if (kingdom || iucnStatus || featured) {
-            let idFilterQuery = (supabaseAdmin as any)
+          if (filteredIds.length > 0 && (kingdom || iucnStatus || featured)) {
+            let idFilterQuery = supabaseAdmin
               .from('species')
               .select('id')
               .in('id', orderedIds);
@@ -45,7 +53,7 @@ export async function GET(request: NextRequest) {
 
             const { data: idRows, error: idErr } = await idFilterQuery;
             if (idErr) throw idErr;
-            const allowed = new Set((idRows ?? []).map((r: any) => r.id));
+            const allowed = new Set((idRows ?? []).map((r) => r.id));
             filteredIds = orderedIds.filter((id) => allowed.has(id));
           }
 
@@ -53,18 +61,22 @@ export async function GET(request: NextRequest) {
           const pagedIds = filteredIds.slice(offset, offset + limit);
 
           // 3) Fetch full records for paged ids and order them to match rank order
-          let detailsQuery = (supabaseAdmin as any)
-            .from('species')
-            .select('*')
-            .in('id', pagedIds);
+          let detailsQuery = supabaseAdmin.from('species').select('*');
+          if (pagedIds.length > 0) {
+            detailsQuery = detailsQuery.in('id', pagedIds);
+          } else {
+            detailsQuery = detailsQuery.limit(0);
+          }
 
           const { data: details, error: detailsErr } = await detailsQuery;
           if (detailsErr) throw detailsErr;
 
-          const byId = new Map((details ?? []).map((r: any) => [r.id, r]));
-          const ordered = pagedIds.map((id) => byId.get(id)).filter(Boolean);
-          const normalized = (ordered as any[]).map((rec) =>
-            normalizeSpeciesRecord(rec as any)
+          const byId = new Map((details ?? []).map((r) => [r.id, r] as const));
+          const ordered = pagedIds
+            .map((id) => byId.get(id))
+            .filter((value): value is SpeciesRow => Boolean(value));
+          const normalized = ordered.map((rec) =>
+            normalizeSpeciesRecord(rec as Species)
           );
 
           return NextResponse.json({
@@ -86,7 +98,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Fallback/basic query path (no search term or RPC unavailable)
-  let query = (supabaseAdmin as any)
+  let query = supabaseAdmin
     .from('species')
     .select('*', { count: 'exact' })
     .order('featured', { ascending: false })
@@ -119,7 +131,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const normalized = (data ?? []).map(normalizeSpeciesRecord);
+  const normalized = (data ?? []).map((record) =>
+    normalizeSpeciesRecord(record as Species)
+  );
 
   return NextResponse.json({
     data: normalized,
@@ -166,9 +180,11 @@ export async function POST(request: NextRequest) {
   const payload = parsed.data;
   const slug = payload.slug ?? slugify(payload.scientific_name);
 
-  const { data, error } = await (supabaseAdmin as any)
+  const speciesInsert: SpeciesInsert = { ...payload, slug };
+
+  const { data, error } = await supabaseAdmin
     .from('species')
-    .insert([{ ...payload, slug }])
+    .insert([speciesInsert])
     .select('*')
     .single();
 
@@ -177,5 +193,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ data: normalizeSpeciesRecord(data) }, { status: 201 });
+  return NextResponse.json(
+    { data: normalizeSpeciesRecord(data as Species) },
+    { status: 201 }
+  );
 }

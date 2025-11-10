@@ -6,7 +6,12 @@ import {
   slugify,
   speciesUpdateSchema,
 } from '@/lib/api/species-route-helpers';
-import type { SpeciesWithDetails } from '@/types/species';
+import type { SpeciesWithDetails, Species } from '@/types/species';
+import type { Tables, TablesUpdate } from '@/types/database.types';
+type TaxonomyRow = Tables<'taxonomy_hierarchy'> | null;
+type ConservationRow = Tables<'conservation_data'> | null;
+type SpeciesImageRow = Tables<'species_images'>;
+type SpeciesUpdate = TablesUpdate<'species'>;
 
 // Next.js 16: route handler context params are now a Promise
 type Params = Promise<{ identifier: string }>;
@@ -21,31 +26,35 @@ const resolveIdentifierColumn = (identifier: string) =>
 
 const enrichSpeciesRecord = async (speciesId: string) => {
   const [{ data: taxonomy }, { data: conservation }, { data: images }] = await Promise.all([
-    (supabaseAdmin as any)
+    supabaseAdmin
       .from('taxonomy_hierarchy')
       .select('*')
       .eq('species_id', speciesId)
       .maybeSingle(),
-    (supabaseAdmin as any)
+    supabaseAdmin
       .from('conservation_data')
       .select('*')
       .eq('species_id', speciesId)
       .maybeSingle(),
-    (supabaseAdmin as any)
+    supabaseAdmin
       .from('species_images')
       .select('*')
       .eq('species_id', speciesId)
       .order('sort_order', { ascending: true }),
   ]);
 
-  return { taxonomy, conservation, images: images ?? [] };
+  return {
+    taxonomy: taxonomy as TaxonomyRow,
+    conservation: conservation as ConservationRow,
+    images: (images ?? []) as SpeciesImageRow[],
+  };
 };
 
 export async function GET(_request: NextRequest, context: { params: Params }) {
   const { identifier } = await context.params;
   const column = resolveIdentifierColumn(identifier);
 
-  const { data: species, error } = await (supabaseAdmin as any)
+  const { data: species, error } = await supabaseAdmin
     .from('species')
     .select('*')
     .eq(column, identifier)
@@ -56,7 +65,7 @@ export async function GET(_request: NextRequest, context: { params: Params }) {
   }
 
   const extras = await enrichSpeciesRecord(species.id);
-  const normalized = normalizeSpeciesRecord(species);
+  const normalized = normalizeSpeciesRecord(species as Species);
 
   return NextResponse.json({
     data: {
@@ -103,9 +112,14 @@ export async function PUT(request: NextRequest, context: { params: Params }) {
     updates.slug = slugify(updates.scientific_name);
   }
 
-  const { data, error } = await (supabaseAdmin as any)
+  const speciesUpdate: SpeciesUpdate = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabaseAdmin
     .from('species')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(speciesUpdate)
     .eq(column, identifier)
     .select('*')
     .single();
@@ -122,7 +136,7 @@ export async function PUT(request: NextRequest, context: { params: Params }) {
 
   return NextResponse.json({
     data: {
-      ...(normalizeSpeciesRecord(data) as SpeciesWithDetails),
+      ...(normalizeSpeciesRecord(data as Species) as SpeciesWithDetails),
       ...extras,
     },
   });

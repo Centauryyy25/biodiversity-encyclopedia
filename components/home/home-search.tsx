@@ -9,6 +9,17 @@ interface HomeSearchProps {
   className?: string;
 }
 
+const isAbortError = (error: unknown): boolean => {
+  if (error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
+  if (typeof error === 'object' && error !== null && 'name' in error) {
+    const candidate = (error as { name?: unknown }).name;
+    return candidate === 'AbortError';
+  }
+  return false;
+};
+
 export default function HomeSearch({ className }: HomeSearchProps) {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -60,7 +71,9 @@ export default function HomeSearch({ className }: HomeSearchProps) {
         setOpen(items.length > 0);
         setActiveIndex(-1);
       } catch (err) {
-        if ((err as any)?.name === 'AbortError') return;
+        if (isAbortError(err)) {
+          return;
+        }
         setSuggestions([]);
         setOpen(false);
       } finally {
@@ -151,7 +164,7 @@ export default function HomeSearch({ className }: HomeSearchProps) {
                 type="submit"
                 className="w-full px-3 py-2 text-sm text-[#8EB69B] hover:bg-[#163832]"
               >
-                Search all results for "{query.trim()}"
+                Search all results for &ldquo;{query.trim()}&rdquo;
               </button>
             </div>
           </div>
