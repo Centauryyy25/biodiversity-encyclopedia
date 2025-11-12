@@ -55,10 +55,14 @@ export default function HeroSearch() {
   return (
     <div className="max-w-2xl mx-auto mb-12">
       <form onSubmit={handleSubmit} className="relative flex flex-col sm:flex-row gap-3">
+        <label htmlFor="hero-search" className="text-xs text-[#8EB69B] mb-1 sm:mb-0 sm:absolute sm:-top-6">
+          Search species
+        </label>
         {/* Input */}
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8EB69B] h-5 w-5" />
           <Input
+            id="hero-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search species by name, taxonomy, or habitat..."

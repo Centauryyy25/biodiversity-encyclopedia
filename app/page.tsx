@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from 'react';
 import { Globe, BookOpen, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import AuthGatedButton from '@/components/auth/AuthGatedButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -168,16 +169,19 @@ export default function Home() {
                   title="Ecosystem Guides"
                   description="Explore different habitats and their unique inhabitants"
                 />
-                <FeatureItem
+                {/* <FeatureItem
                   icon={<Camera className="h-5 w-5" />}
                   title="AI Recognition Tool"
                   description="Upload photos to identify species using artificial intelligence"
-                />
+                /> */}
               </div>
 
-              <Button asChild className="mt-8 bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE]">
-                <Link href="/learn">Start Learning</Link>
-              </Button>
+              <AuthGatedButton
+                href="/learn"
+                label="Start Learning"
+                variant={undefined}
+                className="mt-8 bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE]"
+              />
             </div>
 
             <div className="relative aspect-video rounded-xl overflow-hidden">
@@ -193,7 +197,7 @@ export default function Home() {
       </section>
 
       {/* Contribute Section */}
-      <section id="contribute" className="py-16 lg:py-24">
+      <section id="contribute" className="py-16 mt-32 lg:py-24">
         <div className="container mx-auto px-4">
           <Card className="bg-[#163832] shadow-2xl border-[#8EB69B]/20  max-w-4xl mx-auto">
             <CardHeader className="text-center">
@@ -211,9 +215,11 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild className="bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE]">
-                  <Link href="/contribute">Join as Contributor</Link>
-                </Button>
+                <AuthGatedButton
+                  href="/contribute"
+                  label="Join as Contributor"
+                  className="bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE]"
+                />
                 <Button asChild variant="outline" className="border-[#8EB69B] text-[#DAF1DE] hover:bg-[#8EB69B]/20">
                   <Link href="/contributors">View Contributors</Link>
                 </Button>

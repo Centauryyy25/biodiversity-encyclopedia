@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Shield, Info, Globe } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { FadeIn, FadeInOnView } from '@/components/ui/fade-in';
+import { formatDateUTC } from '@/utils/date';
 
 // Next.js 16: params is a Promise and must be awaited
 interface SpeciesPageProps {
@@ -109,7 +111,8 @@ export default async function SpeciesPage({ params }: SpeciesPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#051F20] to-[#235347]">
-      <div className="container mx-auto px-4 py-8">
+      <div className="mx-auto max-w-[1200px] px-4 md:px-8 lg:px-12 py-8">
+        <FadeIn>
         {/* Back Navigation */}
         <div className="mb-6">
           <Link href="/">
@@ -168,7 +171,7 @@ export default async function SpeciesPage({ params }: SpeciesPageProps) {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {species.image_urls.map((image, index) => (
-                    <div key={index} className="relative aspect-video rounded-lg overflow-hidden">
+                    <FadeInOnView key={index} className="relative aspect-video rounded-lg overflow-hidden">
                       <Image
                         src={image}
                         alt={`${species.common_name || species.scientific_name} - Image ${index + 1}`}
@@ -176,7 +179,7 @@ export default async function SpeciesPage({ params }: SpeciesPageProps) {
                         className="object-cover hover:scale-105 transition-transform duration-300"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
-                    </div>
+                    </FadeInOnView>
                   ))}
                 </div>
               </CardContent>
@@ -408,9 +411,7 @@ export default async function SpeciesPage({ params }: SpeciesPageProps) {
                       <Separator className="bg-[#8EB69B]/20" />
                       <div className="flex justify-between text-sm">
                         <span className="text-[#8EB69B]">Last Updated:</span>
-                        <span className="text-[#DAF1DE]">
-                          {new Date(species.updated_at).toLocaleDateString()}
-                        </span>
+                        <span className="text-[#DAF1DE]">{formatDateUTC(species.updated_at)}</span>
                       </div>
                     </>
                   );
@@ -419,6 +420,7 @@ export default async function SpeciesPage({ params }: SpeciesPageProps) {
             </Card>
           </div>
         </div>
+        </FadeIn>
       </div>
     </div>
   );

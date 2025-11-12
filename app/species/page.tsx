@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import type { Metadata } from 'next';
 import SpeciesCatalogClient from '@/components/species/species-catalog-client';
+import { FadeIn } from '@/components/ui/fade-in';
 import type { Species } from '@/types/species';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -94,15 +95,36 @@ async function fetchInitialSpecies(filters: SpeciesFilters): Promise<SpeciesList
   }
 }
 
-export default async function SpeciesPage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
-  const search = typeof searchParams?.search === 'string' ? searchParams.search : undefined;
-  const kingdom = typeof searchParams?.kingdom === 'string' ? searchParams.kingdom : undefined;
+export default async function SpeciesPage(
+  { searchParams }: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  }
+) {
+  const sp = await searchParams;
+  const rawSearch = (sp as Record<string, unknown>).search;
+  const rawKingdom = (sp as Record<string, unknown>).kingdom;
+  const rawStatus = (sp as Record<string, unknown>).iucn_status;
+
+  const search =
+    typeof rawSearch === 'string'
+      ? rawSearch
+      : Array.isArray(rawSearch) && typeof rawSearch[0] === 'string'
+      ? rawSearch[0]
+      : undefined;
+
+  const kingdom =
+    typeof rawKingdom === 'string'
+      ? rawKingdom
+      : Array.isArray(rawKingdom) && typeof rawKingdom[0] === 'string'
+      ? rawKingdom[0]
+      : undefined;
+
   const status =
-    typeof searchParams?.iucn_status === 'string' ? searchParams.iucn_status : undefined;
+    typeof rawStatus === 'string'
+      ? rawStatus
+      : Array.isArray(rawStatus) && typeof rawStatus[0] === 'string'
+      ? rawStatus[0]
+      : undefined;
 
   const initialPayload = await fetchInitialSpecies({
     search,
@@ -114,8 +136,8 @@ export default async function SpeciesPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#051F20] to-[#235347] py-16">
-      <div className="container mx-auto px-4 space-y-10">
-        <div className="space-y-4 text-center">
+      <div className="mx-auto max-w-[1200px] px-4 md:px-8 lg:px-12 space-y-10">
+        <FadeIn className="space-y-4 text-center">
           <p className="text-sm uppercase tracking-[0.3em] text-[#8EB69B]">Discover Life</p>
           <h1 className="text-4xl lg:text-5xl font-serif text-[#DAF1DE]">Species Encyclopedia</h1>
           <p className="text-[#8EB69B] max-w-3xl mx-auto leading-relaxed text-lg">
@@ -126,7 +148,7 @@ export default async function SpeciesPage({
             Currently tracking <span className="font-semibold text-[#DAF1DE]">{initialCount}</span>{' '}
             species
           </p>
-        </div>
+        </FadeIn>
 
         {initialPayload.error && (
           <Alert className="bg-[#401414]/60 border border-[#F87171]/40 text-[#FECACA]">
@@ -137,6 +159,7 @@ export default async function SpeciesPage({
           </Alert>
         )}
 
+        <FadeIn>
         <SpeciesCatalogClient
           initialSpecies={initialSpecies}
           initialCount={initialCount}
@@ -145,6 +168,7 @@ export default async function SpeciesPage({
           initialKingdom={kingdom ?? 'all'}
           initialStatus={status ?? 'all'}
         />
+        </FadeIn>
       </div>
     </div>
   );

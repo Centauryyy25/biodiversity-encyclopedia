@@ -3,6 +3,9 @@ import localFont from 'next/font/local'
 import './globals.css'
 import TanstackClientProvider from '@/components/providers/tanstack-client-provider'
 import ClerkClientProvider from '@/components/providers/clerk-client-provider'
+import { ThemeProvider } from '@/components/providers/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
+import NavbarUser from '@/components/navbar-user'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -69,11 +72,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClerkClientProvider>
-          <TanstackClientProvider>{children}</TanstackClientProvider>
-        </ClerkClientProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ClerkClientProvider>
+            <TanstackClientProvider>
+              <NavbarUser />
+              {children}
+              <Toaster richColors expand={false} closeButton position="top-center" />
+            </TanstackClientProvider>
+          </ClerkClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

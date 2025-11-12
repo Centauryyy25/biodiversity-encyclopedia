@@ -53,7 +53,11 @@ export default function NewsletterForm() {
   return (
     <div className="space-y-4">
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+        <label htmlFor="newsletter-email" className="text-xs text-[#8EB69B]">
+          Email address
+        </label>
         <Input
+          id="newsletter-email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
