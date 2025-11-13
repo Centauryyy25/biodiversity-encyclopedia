@@ -1,4 +1,4 @@
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ContributionForm from '@/components/domain/contribute/ContributionForm'
 import MySubmissions from '@/components/domain/contribute/MySubmissions'

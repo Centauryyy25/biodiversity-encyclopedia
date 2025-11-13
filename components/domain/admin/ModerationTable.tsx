@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from 'react'
+import Image from 'next/image'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDateUTC } from '@/utils/date'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -20,9 +21,11 @@ interface Submission {
   content?: string | null
 }
 
+type StatusFilter = 'all' | Submission['status']
+
 export default function ModerationTable({ submissions }: { submissions: ReadonlyArray<Submission> }) {
   const [rows, setRows] = useState<Submission[]>([...submissions])
-  const [statusFilter, setStatusFilter] = useState<'all' | Submission['status']>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [query, setQuery] = useState('')
 
   const filtered = useMemo(() => {
@@ -42,7 +45,7 @@ export default function ModerationTable({ submissions }: { submissions: Readonly
         <div className="w-72">
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search title or user..." className="rounded-2xl" aria-label="Search submissions" />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
           <SelectTrigger aria-label="Filter by status" className="w-44">
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
@@ -95,8 +98,15 @@ export default function ModerationTable({ submissions }: { submissions: Readonly
                         {s.type === 'image' && s.url ? (
                           <div>
                             <span className="font-medium">Image:</span>
-                            <div className="mt-2">
-                              <img src={s.url} alt={`Preview ${s.title}`} className="rounded-xl max-h-64 object-contain w-full" />
+                            <div className="mt-2 relative h-64">
+                              <Image
+                                src={s.url}
+                                alt={`Preview ${s.title}`}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                className="rounded-xl object-contain"
+                                unoptimized
+                              />
                             </div>
                           </div>
                         ) : null}
@@ -118,7 +128,8 @@ export default function ModerationTable({ submissions }: { submissions: Readonly
                       })
                       if (!res.ok) throw new Error(await res.text())
                       setRows(prev => prev.map(r => r.id === s.id ? { ...r, status: next } : r))
-                    } catch (e) {
+                    } catch (error) {
+                      console.error('Failed to update status in ModerationTable', error)
                       // ignore; ActionButtons will toast
                     }
                   }} />

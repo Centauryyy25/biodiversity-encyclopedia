@@ -21,6 +21,7 @@ export default function RecognitionToolPage() {
   const [loading, setLoading] = useState(false)
 
   const handleUpload = async (file: File) => {
+    void file
     setLoading(true)
     // Placeholder: simulate API inference
     setTimeout(() => {
@@ -79,4 +80,3 @@ export default function RecognitionToolPage() {
     </div>
   )
 }
-

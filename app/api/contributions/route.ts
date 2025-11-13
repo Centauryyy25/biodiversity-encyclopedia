@@ -15,17 +15,16 @@ export async function POST(req: Request) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
-    const body = await req.json()
-    const parsed = Schema.parse(body)
+    const parsed = Schema.parse(await req.json())
     if (!hasSupabaseServiceRole) {
       return NextResponse.json({ error: 'Server missing SUPABASE_SERVICE_ROLE_KEY' }, { status: 500 })
     }
-    const { error } = await (supabaseAdmin as any)
+    const { error } = await supabaseAdmin
       .from('submissions')
       .insert([{ user_id: userId, title: parsed.title, type: parsed.type, url: parsed.url || null, content: parsed.content, status: 'pending' }])
     if (error) {
       if (isMissingTableError(error, 'submissions')) {
-        return NextResponse.json({ error: "Submissions table not found. Run Supabase migrations to create 'public.submissions'." }, { status: 503 })
+        return NextResponse.json({ error: 'Submissions table not found. Run Supabase migrations to create &lsquo;public.submissions&rsquo;.' }, { status: 503 })
       }
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
@@ -42,7 +41,7 @@ export async function GET() {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!hasSupabaseServiceRole) return NextResponse.json({ data: [] })
-  const { data, error } = await (supabaseAdmin as any)
+  const { data, error } = await supabaseAdmin
     .from('submissions')
     .select('id,title,type,status,created_at,url')
     .eq('user_id', userId)

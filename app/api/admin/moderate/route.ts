@@ -13,23 +13,28 @@ function isAdminEmail(email?: string | null) {
   return email ? list.includes(email.toLowerCase()) : false
 }
 
+const getRoleFromMetadata = (metadata: unknown): string | undefined => {
+  if (typeof metadata !== 'object' || metadata === null) return undefined
+  const value = (metadata as Record<string, unknown>).role
+  return typeof value === 'string' ? value : undefined
+}
+
 export async function PATCH(req: Request) {
   try {
     const { userId } = await auth()
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const user = await currentUser()
     const email = user?.primaryEmailAddress?.emailAddress ?? null
-    const role = (user?.publicMetadata as any)?.role
+    const role = getRoleFromMetadata(user?.publicMetadata)
     const isAllowed = Boolean(userId) && (role === 'admin' || isAdminEmail(email))
     if (!isAllowed) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     if (!hasSupabaseServiceRole) {
       return NextResponse.json({ error: 'Server missing SUPABASE_SERVICE_ROLE_KEY' }, { status: 500 })
     }
 
-    const body = await req.json()
-    const { id, status } = BodySchema.parse(body)
+    const { id, status } = BodySchema.parse(await req.json())
 
-    const { error } = await (supabaseAdmin as any)
+    const { error } = await supabaseAdmin
       .from('submissions')
       .update({ status })
       .eq('id', id)
@@ -44,4 +49,3 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'Unexpected error' }, { status: 500 })
   }
 }
-

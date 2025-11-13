@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, use } from 'react'
+import { use } from 'react'
 import { useSearchParams } from 'next/navigation'
 import QuizRunner from '@/components/domain/learn/QuizRunner'
 import type { QuizTopic } from '@/lib/supabase/learn'

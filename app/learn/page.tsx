@@ -12,7 +12,6 @@ import MyResults from '@/components/domain/learn/MyResults'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 
 const QUIZZES: QuizMeta[] = [
@@ -27,7 +26,6 @@ export default function LearnPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('all')
   const [topic, setTopic] = useState<TopicOption>('all')
   const [query, setQuery] = useState('')
-  const [openQuizId, setOpenQuizId] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {

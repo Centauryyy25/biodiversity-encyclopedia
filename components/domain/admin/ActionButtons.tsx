@@ -14,7 +14,8 @@ export default function ActionButtons({ id, onChange }: { id: string; onChange?:
       if (!res.ok) throw new Error(await res.text())
       onChange?.(status)
       toast.success(`${status[0].toUpperCase()}${status.slice(1)} submission`)
-    } catch (e) {
+    } catch (error) {
+      console.error('Failed to update submission status', error)
       toast.error('Failed to update')
     }
   }

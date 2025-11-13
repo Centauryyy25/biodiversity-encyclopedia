@@ -132,6 +132,45 @@ export type Database = {
                 }
                 Relationships: []
             }
+            quiz_results: {
+                Row: {
+                    correct_count: number
+                    created_at: string
+                    difficulty: "Beginner" | "Intermediate" | "Advanced"
+                    finished_at: string | null
+                    id: string
+                    metadata: Json | null
+                    questions_count: number
+                    quiz_id: string
+                    topic: "Taxonomy" | "Habitats" | "Conservation" | "Classification" | "SpeciesSpec"
+                    user_id: string
+                }
+                Insert: {
+                    correct_count: number
+                    created_at?: string
+                    difficulty: "Beginner" | "Intermediate" | "Advanced"
+                    finished_at?: string | null
+                    id?: string
+                    metadata?: Json | null
+                    questions_count: number
+                    quiz_id: string
+                    topic: "Taxonomy" | "Habitats" | "Conservation" | "Classification" | "SpeciesSpec"
+                    user_id: string
+                }
+                Update: {
+                    correct_count?: number
+                    created_at?: string
+                    difficulty?: "Beginner" | "Intermediate" | "Advanced"
+                    finished_at?: string | null
+                    id?: string
+                    metadata?: Json | null
+                    questions_count?: number
+                    quiz_id?: string
+                    topic?: "Taxonomy" | "Habitats" | "Conservation" | "Classification" | "SpeciesSpec"
+                    user_id?: string
+                }
+                Relationships: []
+            }
             species: {
                 Row: {
                     id: string
@@ -204,6 +243,39 @@ export type Database = {
                     created_at?: string
                     updated_at?: string
                     info_detail?: string | null
+                }
+                Relationships: []
+            }
+            submissions: {
+                Row: {
+                    content: string | null
+                    created_at: string
+                    id: string
+                    status: "pending" | "approved" | "rejected" | "flagged"
+                    title: string
+                    type: "image" | "text"
+                    url: string | null
+                    user_id: string
+                }
+                Insert: {
+                    content?: string | null
+                    created_at?: string
+                    id?: string
+                    status?: "pending" | "approved" | "rejected" | "flagged"
+                    title: string
+                    type?: "image" | "text"
+                    url?: string | null
+                    user_id: string
+                }
+                Update: {
+                    content?: string | null
+                    created_at?: string
+                    id?: string
+                    status?: "pending" | "approved" | "rejected" | "flagged"
+                    title?: string
+                    type?: "image" | "text"
+                    url?: string | null
+                    user_id?: string
                 }
                 Relationships: []
             }

@@ -42,7 +42,7 @@ export default function ContributionForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm block mb-1">Type</label>
-          <Select value={type} onValueChange={(v) => setType(v as any)}>
+          <Select value={type} onValueChange={(value) => setType(value as 'image' | 'text')}>
             <SelectTrigger className="rounded-2xl"><SelectValue /></SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="text">Text/Note</SelectItem>
@@ -65,4 +65,3 @@ export default function ContributionForm() {
     </form>
   )
 }
-

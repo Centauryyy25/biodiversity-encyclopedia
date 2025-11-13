@@ -1,5 +1,5 @@
 import { Suspense, type ReactNode } from 'react';
-import { Globe, BookOpen, Camera } from 'lucide-react';
+import { Globe, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AuthGatedButton from '@/components/auth/AuthGatedButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
