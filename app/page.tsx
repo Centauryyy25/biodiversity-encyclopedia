@@ -10,6 +10,7 @@ import FeaturedSpeciesClient from '@/components/home/featured-species-client';
 import HeroSearch from '@/components/home/hero-search';
 import HeroActions from '@/components/home/hero-actions';
 import NewsletterForm from '@/components/home/newsletter-form';
+import encyclopediaImage from '@/public/Encyclopedia.png';
 const CATEGORY_LINKS = [
   {
     title: 'Mammals',
@@ -185,12 +186,16 @@ export default function Home() {
             </div>
 
             <div className="relative aspect-video rounded-xl overflow-hidden">
+              {/* <div className="absolute inset-0 bg-white/10 backdrop-blur-[10px] border border-white/20 z-10" /> */}
+
               <Image
-                src="/api/placeholder/600/400"
+                src={encyclopediaImage}
                 alt="Educational content preview"
                 fill
-                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover p-2 relative z-10"
               />
+              {/* <div className="absolute inset-0 bg-gradient-to-tr from-black/30 via-transparent to-white/10 z-20 pointer-events-none" /> */}
             </div>
           </div>
         </div>
